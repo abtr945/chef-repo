@@ -1,0 +1,90 @@
+input {
+  file {
+    path => "/home/ubuntu/node.log"
+    type => "chef_log"
+    debug => true
+  }
+}
+
+filter {
+  grok {
+    type => "chef_log"
+    patterns_dir => "/tmp/patterns"
+    pattern => ["%{STEP0}"]
+    add_tag => ["step0"]
+  }
+
+  grok {
+    type => "chef_log"
+    patterns_dir => "/tmp/patterns"
+    pattern => ["%{STEP2}"]
+    add_tag => ["step2"]
+  }
+  
+  grok {
+    type => "chef_log"
+    patterns_dir => "/tmp/patterns"
+    pattern => ["%{STEP4}"]
+    add_tag => ["step4"]
+  }
+
+  grok {
+    type => "chef_log"
+    patterns_dir => "/tmp/patterns"
+    pattern => ["%{STEP6}"]
+    add_tag => ["step6"]
+  }
+
+  grok {
+    type => "chef_log"
+    patterns_dir => "/tmp/patterns"
+    pattern => ["%{STEP8}"]
+    add_tag => ["step8"]
+  }
+
+  grok {
+    type => "chef_log"
+    patterns_dir => "/tmp/patterns"
+    pattern => ["%{COMPLETE}"]
+    add_tag => ["complete"]
+  }
+
+  grep {
+    type => "chef_log"
+    remove_tag => ["_grokparsefailure"]
+  }
+}
+
+output {
+  stdout { debug => true }
+	
+	if "step2" in [tags] {
+		exec {
+    		command => "sudo sh /tmp/run_test.sh 2 5 >> /tmp/test.log"
+  		}
+	}
+	
+	if "step4" in [tags] {
+		exec {
+    		command => "sudo sh /tmp/run_test.sh 4 5 >> /tmp/test.log"
+  		}
+	}
+	
+	if "step6" in [tags] {
+		exec {
+    		command => "sudo sh /tmp/run_test.sh 6 5 >> /tmp/test.log"
+  		}
+	}
+	
+	if "step8" in [tags] {
+		exec {
+    		command => "sudo sh /tmp/run_test.sh 8 5 >> /tmp/test.log"
+  		}
+	}
+	
+	if "complete" in [tags] {
+		exec {
+    		command => "sudo sh /tmp/run_test.sh 10 5 >> /tmp/test.log"
+  		}
+	}
+}
