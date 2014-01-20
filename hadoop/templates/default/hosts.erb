@@ -1,7 +1,7 @@
 127.0.0.1 localhost
 
 <% @hosts.keys.sort.each do |ip| %>
-<%= ip %> <%= @hosts[ip].name %>
+<%= ip %> <%= @hosts[ip] %>
 <% end %>
 
 # The following lines are desirable for IPv6 capable hosts
