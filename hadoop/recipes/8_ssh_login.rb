@@ -35,8 +35,8 @@ if node[:opsworks][:instance][:hostname] == "master"
   hosts.keys.sort.each do |ip|
     execute "copy_ssh_keys_#{ip}" do
       command <<-EOH
-        sudo -u hduser sshpass -p "password" scp -o StrictHostKeyChecking=no /home/hduser/.ssh/id_rsa.pub hduser@#{hosts[ip].name}:/tmp
-        sudo -u hduser sshpass -p "password" ssh -o StrictHostKeyChecking=no hduser@#{hosts[ip].name} "(mkdir -p .ssh; touch .ssh/authorized_keys; grep #{node[:fqdn]} .ssh/authorized_keys > /dev/null || cat /tmp/id_rsa.pub >> .ssh/authorized_keys; rm /tmp/id_rsa.pub)"
+        sudo -u hduser sshpass -p "password" scp -o StrictHostKeyChecking=no /home/hduser/.ssh/id_rsa.pub hduser@#{hosts[ip]}:/tmp
+        sudo -u hduser sshpass -p "password" ssh -o StrictHostKeyChecking=no hduser@#{hosts[ip]} "(mkdir -p .ssh; touch .ssh/authorized_keys; grep #{node[:opsworks][:instance][:private_dns_name]} .ssh/authorized_keys > /dev/null || cat /tmp/id_rsa.pub >> .ssh/authorized_keys; rm /tmp/id_rsa.pub)"
       EOH
     end
   end
