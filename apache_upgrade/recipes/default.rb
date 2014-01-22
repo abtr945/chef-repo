@@ -16,6 +16,7 @@ end
 # Upgrade Apache to latest version
 package "apache2" do
   package_name node['apache']['package']
+  version "2.4.7"
   action :upgrade
 end
 
