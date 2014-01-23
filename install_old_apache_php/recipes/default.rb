@@ -12,7 +12,6 @@
 # Modify Yum repo to an older repo
 template "/etc/yum.conf" do
   source "yum.conf.erb"
-  mode 0440
   owner "root"
   group "root"
   variables({
@@ -40,7 +39,6 @@ end
 # Reset Yum repo to latest repo
 template "/etc/yum.conf" do
   source "yum.conf.erb"
-  mode 0440
   owner "root"
   group "root"
   variables({
