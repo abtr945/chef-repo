@@ -19,8 +19,16 @@ class TestTomcat < MiniTest::Unit::TestCase
   end
   
   # Test cases after Step 2
-  def test_catalina_home_existed
-     assert Dir.exists? ("/etc/tomcat6") && Dir.exists? ("/usr/share/tomcat6") && Dir.exists? ("/var/lib/tomcat6"), "Test 2.1 failed: Tomcat executable and/or library folder do not exist"
+  def test_tomcat_catalina_base_exist
+     assert Dir.exists? ("/etc/tomcat6"), "Test 2.1 failed: Tomcat CATALINA_BASE directory does not exist"
+  end
+  
+  def test_tomcat_webapp_base_exist
+     assert Dir.exists? ("/var/lib/tomcat6"), "Test 2.2 failed: Tomcat webapps base directory do not exist"
+  end
+  
+  def test_tomcat_lib_directory_exist
+     assert Dir.exists? ("/usr/share/tomcat6"), "Test 2.3 failed: Tomcat library directory do not exist"
   end
   
   # Test cases after Step 3
