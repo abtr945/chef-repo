@@ -1,0 +1,146 @@
+# TesterInterface.rb
+#
+# Author: An Binh TRAN
+# Company: NICTA
+#
+
+# Command line arguments:
+# - "-I" for interactive session (define new tests, remove tests)
+# - "-T <test_case_1> <test_case_2> ..." for executing test cases
+# - "-H" for help 
+
+# Test case file naming convention:
+# - For Minitest file:  test_<testNumber>.rb
+# - For Cucumber file:
+
+
+# *** CONSTANTS ***
+
+# Directory where test files are located - make sure NOT to include slash (/) at the end
+TEST_FILE_LOCATION = "<%= @node[:test][:location] %>" # TODO change to Chef template attribute
+
+# Directory to store the test result log file - make sure NOT to include slash (/) at the end
+LOG_FILE_LOCATION = "<%= @node[:test][:location] %>"  # TODO change to Chef template attribute
+
+
+# *** METHODS ***
+
+# process_test_output()
+# Description: get rid of unnecessary info in test output
+#
+# Method arguments:
+# - test_number: the test case number of the executed test
+# - output: the result output of the executed test
+#
+# Return value:
+# - processed_output: the processed result of the executed test
+#
+def process_test_output(test_number, output)
+  current_time = Time.now.strftime("[%Y-%m-%dT%H:%M:%S%:z]")
+  # TODO might need to change to accommodate CUCUMBER test cases
+  processed_output = "#{current_time} Running test: test_#{test_number}.rb\n"
+  previous_line_is_blank = false
+  # For each line of the output
+  output.split("\n").each do |line|
+    # ignore unnecessary info lines
+    if ((line =~ /Run options/) != nil) || ((line =~ /# Running tests/) != nil) || ((line =~ /^[\.F]+$/) != nil)
+    # if encounter a blank line
+    elsif (line =~ /^$/) != nil
+      # if previous line encountered is also blank => ignore this current blank line
+      if previous_line_is_blank == true
+      # else, write this line, and set "previous_line_blank" to TRUE
+      else 
+        processed_output << line << "\n"
+        previous_line_is_blank = true
+      end
+    # "useful" info line, write to processed_output
+    else
+      processed_output << line << "\n"
+      previous_line_is_blank = false
+    end
+  end
+  processed_output << "\n\n"
+  return processed_output
+end
+  
+
+# modify_test_cases()
+# Description: allow user to add test cases, remove test cases, etc.
+#
+# Method arguments: (none)
+#
+# Return value: (none)
+#
+def modify_test_cases
+  # TODO currently unimplemented
+  puts "TODO: Stub method MTC"
+end
+
+
+# run_test_cases()
+# Description: execute the specified Minitest or Cucumber test cases
+#
+# Method arguments:
+# - tests: a list of the tests (number) specified by the user to be executed
+#
+# Return value:
+# - result_log_content: the processed result log of ALL of the specified tests
+#
+def run_test_cases(tests)   # TODO need to change to accommodate CUCUMBER tests
+  result_log_content = ""   # initialize variable to store whole test result log
+  # if user specified multiple tests to run
+  if tests.respond_to?("each")
+    # execute each test
+    tests.each do |test|
+      # TODO might need to catch exception here
+      output = `ruby #{TEST_FILE_LOCATION}/test_#{test}.rb`   
+      processed_output = process_test_output(test, output)
+      result_log_content << processed_output
+    end
+  # else, just run one specified test
+  else
+    # TODO might need to catch exception here
+    output = `ruby #{TEST_FILE_LOCATION}/test_#{tests}.rb`
+    result_log_content = process_test_output(tests, output)
+  end
+  return result_log_content
+end
+
+
+# *** MAIN EXECUTION ***
+
+# Check for command line option
+if ARGV[0] == "-I"     # Option -I: add/remove test cases
+  modify_test_cases
+  
+elsif ARGV[0] == "-T"  # Option -T: run test case(s)
+  # Get list of tests (number) to be run from command line
+  tests = ARGV
+  tests.delete("-T")
+  if tests.empty?
+    puts "Usage: TesterInterface.rb -T <test_case_1> <test_case_2> ...\nPlease specify at least 1 test case to run"
+  else
+    # Run the specified test(s), collect the result
+    result = run_test_cases(tests)
+    file = nil
+    # Check if there already exists a log file at the log location
+    # TODO filename change to CHEF template attribute (node IP Address)
+    if !File.exists?("#{LOG_FILE_LOCATION}/test.log")         
+      # if not, create a file at specified location
+      # TODO filename change to CHEF template attribute (node IP Address)
+      file = File.new("#{LOG_FILE_LOCATION}/test.log", "w")   
+    else
+      # else, append to the end of the existing log file
+      # TODO filename change to CHEF template attribute (node IP Address)
+      file = File.open("#{LOG_FILE_LOCATION}/test.log", "a")  
+    end
+    # TODO filename change to CHEF template attribute (node IP Address)
+    raise "ERROR: unable to create or open test log file at #{LOG_FILE_LOCATION}/test.log. Please make sure you have proper permission to access the file or the enclosing directory." unless file != nil
+    # Write the test(s) result to the log file, then close it
+    file.puts(result)
+    file.close
+  end
+  
+else
+  puts "Command line options:\n-H: show this help\n-I: define new tests, remove tests, etc.\n-T <test_case_1> <test_case_2> ... : run specified test case(s)"
+end

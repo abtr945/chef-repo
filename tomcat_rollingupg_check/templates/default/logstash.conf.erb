@@ -1,0 +1,35 @@
+input {
+  file {
+    path => "<%= @node[:logstash][:chef_log_location] %>/chef.log"
+    type => "chef_log"
+    debug => true
+  }
+}
+
+filter {
+  <% for i in 0..(@regexp.size - 1) do -%>
+    grok {
+      type => "chef_log"
+      pattern => ["<%= @regexp[i] %>"]
+      add_tag => ["<%= @tags[i] %>"]
+    }
+  <% end -%>
+
+  grep {
+    type => "chef_log"
+    remove_tag => ["_grokparsefailure"]
+  }
+}
+
+output {
+  stdout { debug => true }
+        
+    <% for i in 0..(@tags.size - 1) do -%>
+      if "<%= @tags[i] %>" in [tags] {
+        exec {
+          command => "sudo ruby <%= @node[:test][:location] %>/TestInterface.rb -T <%= @testnumbers[i] %>"
+        }
+      }
+    <% end -%>
+
+}
