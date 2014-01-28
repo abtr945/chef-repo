@@ -1,6 +1,6 @@
 input {
   file {
-    path => "<%= @node[:logstash][:chef_log_location] %>/chef.log"
+    path => "<%= @node[:logstash][:chef_log_location] %>/*.log"
     type => "chef_log"
     debug => true
   }
