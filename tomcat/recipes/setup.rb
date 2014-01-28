@@ -12,6 +12,12 @@
 # and limitations under the License.
 
 include_recipe 'tomcat::install'
+
+log "complete_step_1" do
+  message "<AN_TRAN> STEP 1: deploy new Tomcat package (version 7) completed successfully"
+  level :info
+end
+
 include_recipe 'tomcat::service'
 
 service 'tomcat' do
@@ -28,5 +34,16 @@ bash '(re-)start autofs earlier' do
 end
 
 include_recipe 'tomcat::container_config'
+
+log "complete_step_2" do
+  message "<AN_TRAN> STEP 2: configure Tomcat environment and container parameters completed successfully"
+  level :info
+end
+
 include_recipe 'apache2'
 include_recipe 'tomcat::apache_tomcat_bind'
+
+log "complete_step_3" do
+  message "<AN_TRAN> STEP 3: deploy Apache package, configure Tomcat to bind with Apache server completed successfully"
+  level :info
+end

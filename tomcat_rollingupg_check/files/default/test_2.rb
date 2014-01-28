@@ -7,17 +7,15 @@ class TestTomcat < MiniTest::Unit::TestCase
     :alpha
   end
 
-  # Test cases after Step 2
-  def test_tomcat_catalina_base_exist
-     assert Dir.exists?("/etc/tomcat6"), "Test 2.1 failed: Tomcat CATALINA_BASE directory does not exist"
+  # Test cases after Step 2 - configure Tomcat environment and container parameters
+  def test_tomcat_user_created
+     output = `egrep -i "^tomcat" /etc/passwd`
+     refute_equal "", output, "Test 2.1 failed: Dedicated user for Tomcat not yet created"
   end
   
-  def test_tomcat_webapp_base_exist
-     assert Dir.exists?("/var/lib/tomcat6"), "Test 2.2 failed: Tomcat webapps base directory do not exist"
-  end
-  
-  def test_tomcat_lib_directory_exist
-     assert Dir.exists?("/usr/share/tomcat6"), "Test 2.3 failed: Tomcat library directory do not exist"
+  def test_tomcat_group_created
+     output = `egrep -i "^tomcat" /etc/group`
+     refute_equal "", output, "Test 2.2 failed: Dedicated group for Tomcat not yet created"
   end
   
 end
