@@ -11,6 +11,14 @@
 include_recipe 'apt'
 include_recipe 'java'
 
+# Create a directory for logstash
+directory "#{node[:logstash][:install_path]}" do
+  owner "root"
+  group "root"
+  recursive true
+  action :create
+end
+
 # Install logstash
 script "install_logstash" do
   interpreter "bash"
@@ -19,6 +27,7 @@ script "install_logstash" do
   code <<-EOH
     wget https://download.elasticsearch.org/logstash/logstash/logstash-1.3.3-flatjar.jar
   EOH
+  not_if { ::File.exists?("#{node[:logstash][:install_path]}/logstash-1.3.3-flatjar.jar") }
 end
 
 # Configure logstash
@@ -50,6 +59,14 @@ script "start_logstash" do
   code <<-EOH
     sudo java -jar #{node[:logstash][:install_path]}/logstash-1.3.3-flatjar.jar agent -f #{node[:logstash][:install_path]}/logstash.conf &
   EOH
+end
+
+# Create a directory for storing the post-condition test cases
+directory "#{node[:test][:location]}" do
+  owner "root"
+  group "root"
+  recursive true
+  action :create
 end
 
 # Install the test wrapper and test cases
