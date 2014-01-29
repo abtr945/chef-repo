@@ -37,19 +37,10 @@ template "#{node[:logstash][:install_path]}/logstash.conf" do
   group "root"
   source "logstash.conf.erb"
   variables({
-    :regexp      => node[:logstash][:regexp],
-    :tags        => node[:logstash][:tags],
-    :testnumbers => node[:logstash][:testnumbers]
+    :regexp => node[:logstash][:regexp],
+    :tags   => node[:logstash][:tags],
+    :tests  => node[:logstash][:tests]
   })
-end
-
-# Install ruby 1.9.3 for use with the post-condition checking
-script "install_ruby" do
-  interpreter "bash"
-  user "root"
-  code <<-EOH
-    sudo apt-get install -y ruby1.9.3
-  EOH
 end
 
 # Start logstash as a background process
@@ -58,6 +49,15 @@ script "start_logstash" do
   user "root"
   code <<-EOH
     sudo java -jar #{node[:logstash][:install_path]}/logstash-1.3.3-flatjar.jar agent -f #{node[:logstash][:install_path]}/logstash.conf &
+  EOH
+end
+
+# Install ruby 1.9.3 for use with the post-condition checking
+script "install_ruby" do
+  interpreter "bash"
+  user "root"
+  code <<-EOH
+    sudo apt-get install -y ruby1.9.3
   EOH
 end
 
