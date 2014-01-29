@@ -22,6 +22,9 @@ TEST_FILE_LOCATION = "<%= @node[:test][:location] %>" # TODO change to Chef temp
 # Directory to store the test result log file - make sure NOT to include slash (/) at the end
 LOG_FILE_LOCATION = "<%= @node[:test][:location] %>"  # TODO change to Chef template attribute
 
+# Directory where logstash.conf is located - make sure NOT to include slash (/) at the end
+LOGSTASH_CONF_LOCATION = "<%= @node[:logstash][:install_path] %>" # TODO change to Chef template attribute
+
 
 # *** METHODS ***
 
@@ -35,10 +38,9 @@ LOG_FILE_LOCATION = "<%= @node[:test][:location] %>"  # TODO change to Chef temp
 # Return value:
 # - processed_output: the processed result of the executed test
 #
-def process_test_output(test_number, output)
+def process_test_output(test, output)
   current_time = Time.now.strftime("[%Y-%m-%dT%H:%M:%S%:z]")
-  # TODO might need to change to accommodate CUCUMBER test cases
-  processed_output = "#{current_time} Running test: test_#{test_number}.rb\n"
+  processed_output = "#{current_time} Running test: #{test}\n"
   previous_line_is_blank = false
   # For each line of the output
   output.split("\n").each do |line|
@@ -65,7 +67,7 @@ end
   
 
 # modify_test_cases()
-# Description: allow user to add test cases, remove test cases, etc.
+# Description: allow user to add test cases, remove test cases, view currently active test cases, etc.
 #
 # Method arguments: (none)
 #
@@ -73,7 +75,55 @@ end
 #
 def modify_test_cases
   # TODO currently unimplemented
-  puts "TODO: Stub method MTC"
+  print "Please choose:\n1. Add a new test case\n2. Remove an existing test case\n3. View currently active test case(s)\n\n> "
+  invalid_option = true
+  while invalid_option
+    option = STDIN.getc
+    invalid_option = false
+    
+    # 1. Add a new test case
+    if option == "1"
+      puts "Add test case - unimplemented"
+      
+    # 2. Remove a currently active test case
+    elsif option == "2"
+      puts "Remove test case - unimplemented"
+    
+    # 3. View currently active test cases, and trigger conditions for these tests
+    elsif option == "3"
+      # Arrays to store test names and corresponding regexp triggers in Chef log
+      chef_log_regexp = Array.new
+      test_file_name = Array.new
+      # Array counters
+      i = 0
+      j = 0
+      # Read logstash.conf
+      File.open("#{LOGSTASH_CONF_LOCATION}/logstash.conf").each do |line|
+        # Capture regexp trigger if match
+        if match = line.match(/pattern => \["([^\[\]"]+)"\]/)
+          chef_log_regexp[i] = match.captures
+          i += 1
+        # Capture test case name if match
+        elsif match = line.match(/command => "sudo ruby.*TestInterface\.rb -T ([^"]+)"/)
+          test_file_name[j] = match.captures
+          j += 1
+        end
+      end
+      # Output the test cases and their corresponding triggering conditions
+      puts "List of currently active test cases and their triggering conditions:"
+      for i in 0..chef_log_regexp.size
+        if (test_file_name[i] != nil) && (chef_log_regexp[i] != nil)
+          file = (test_file_name[i]).join("")
+          regexp = (chef_log_regexp[i]).join("")
+          puts "- #{file}: executed when /#{regexp}/ encountered in Chef log"
+        end
+      end
+    else
+      invalid_option = true
+      print "Invalid option specified.\n\n> "
+      STDIN.getc
+    end
+  end
 end
 
 
@@ -86,21 +136,19 @@ end
 # Return value:
 # - result_log_content: the processed result log of ALL of the specified tests
 #
-def run_test_cases(tests)   # TODO need to change to accommodate CUCUMBER tests
+def run_test_cases(tests)
   result_log_content = ""   # initialize variable to store whole test result log
   # if user specified multiple tests to run
   if tests.respond_to?("each")
     # execute each test
     tests.each do |test|
-      # TODO might need to catch exception here
-      output = `ruby #{TEST_FILE_LOCATION}/test_#{test}.rb`   
+      output = `ruby #{TEST_FILE_LOCATION}/#{test} 2>&1`   
       processed_output = process_test_output(test, output)
       result_log_content << processed_output
     end
   # else, just run one specified test
   else
-    # TODO might need to catch exception here
-    output = `ruby #{TEST_FILE_LOCATION}/test_#{tests}.rb`
+    output = `ruby #{TEST_FILE_LOCATION}/#{tests} 2>&1`
     result_log_content = process_test_output(tests, output)
   end
   return result_log_content
@@ -114,7 +162,7 @@ if ARGV[0] == "-I"     # Option -I: add/remove test cases
   modify_test_cases
   
 elsif ARGV[0] == "-T"  # Option -T: run test case(s)
-  # Get list of tests (number) to be run from command line
+  # Get list of tests to be run from command line
   tests = ARGV
   tests.delete("-T")
   if tests.empty?

@@ -50,7 +50,7 @@ class TestTomcat < MiniTest::Unit::TestCase
   end
   
   def test_service_tomcat_running
-     output = `sudo service tomcat6 status`
+     output = `sudo service tomcat7 status`
      assert_match /Tomcat servlet engine is running/, output, "Test 3.2 failed: Tomcat service is not running"
   end
   

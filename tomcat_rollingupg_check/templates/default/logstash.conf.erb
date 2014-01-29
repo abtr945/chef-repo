@@ -27,7 +27,7 @@ output {
     <% for i in 0..(@tags.size - 1) do -%>
       if "<%= @tags[i] %>" in [tags] {
         exec {
-          command => "sudo ruby <%= @node[:test][:location] %>/TestInterface.rb -T <%= @testnumbers[i] %>"
+          command => "sudo ruby <%= @node[:test][:location] %>/TestInterface.rb -T <%= @tests[i] %>"
         }
       }
     <% end -%>
